@@ -2,15 +2,33 @@ package Craps;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
- * This class is used for ...
+ * This class is used as View Craps class
  * @autor Paola-J Rodriguez-C paola.rodriguez@correounivalle.edu.co
  * @version v.1.0.0 date:21/11/2021
  */
 public class GUI extends JFrame {
+    public static final String MENSAJE_INICIO="Bienvenido a Craps \n" +
+            "Oprime el boton lanzar para iniciar el juego" +
+            "\nSi tu tiro de salido es 7 u 11 ganas con Natural" +
+            "\nSi tu tiro de salido es 2,3 u 12 pierdes con Craps" +
+            "\nSi sacas cualqluier otro valor estableceras el Punto" +
+            "\nEstado en punto podras seguir lanzando los dados" +
+            "\npero ahora ganaras si sacas nuevamente el valor del Punto" +
+            "\nsin que previamente hayas sacado 7";
 
     private Header headerProject;
+    private JLabel dado1,dado2;
+    private JButton lanzar;
+    private JPanel panelDados, panelResultados;
+    private ImageIcon imageDado;
+    private JTextArea mensajeSalida, resultadosDados;
+    private JSeparator separador;
+    private Escucha escucha;
+    private ModelCraps modelCraps;
 
     /**
      * Constructor of GUI class
@@ -19,9 +37,9 @@ public class GUI extends JFrame {
         initGUI();
 
         //Default JFrame configuration
-        this.setTitle("The Title app");
-        this.setSize(200,100);
-        //this.pack();
+        this.setTitle("Juego Craps");
+        //this.setSize(200,100);
+        this.pack();
         this.setResizable(true);
         this.setVisible(true);
         this.setLocationRelativeTo(null);
@@ -34,11 +52,51 @@ public class GUI extends JFrame {
      */
     private void initGUI() {
         //Set up JFrame Container's Layout
-        //Create Listener Object and Control Object
-        //Set up JComponents
-        headerProject = new Header("Header ...", Color.BLACK);
+        //Create Listener Object or Control Object
+        escucha = new Escucha();
+        modelCraps = new ModelCraps();
 
-        this.add(headerProject,BorderLayout.NORTH); //Change this line if you change JFrame Container's Layout
+
+        //Set up JComponents
+        headerProject = new Header("Mesa de Juego Craps", Color.BLACK);
+        this.add(headerProject,BorderLayout.NORTH);
+
+        imageDado = new ImageIcon(getClass().getResource("/resources/dado.jpg"));
+        dado1= new JLabel(imageDado);
+        dado2= new JLabel(imageDado);
+
+        lanzar = new JButton("Lanzar");
+        lanzar.addActionListener(escucha);
+
+        panelDados = new JPanel();
+        panelDados.setPreferredSize(new Dimension(400,240));
+        panelDados.setBorder(BorderFactory.createTitledBorder("Tus Dados"));
+        panelDados.add(dado1);
+        panelDados.add(dado2);
+        panelDados.add(lanzar);
+
+        this.add(panelDados,BorderLayout.CENTER);
+
+        mensajeSalida = new JTextArea(7,31);
+        mensajeSalida.setText(MENSAJE_INICIO);
+        //mensajeSalida.setBorder(BorderFactory.createTitledBorder("Que debes hacer"));
+        JScrollPane scroll = new JScrollPane(mensajeSalida);
+
+        panelResultados = new JPanel();
+        panelResultados.setBorder(BorderFactory.createTitledBorder("Que debes hacer"));
+        panelResultados.add(scroll);
+        panelResultados.setPreferredSize(new Dimension(370,180));
+
+
+        this.add(panelResultados,BorderLayout.EAST);
+
+        resultadosDados = new JTextArea(4,31);
+        separador = new JSeparator();
+        separador.setPreferredSize(new Dimension(320,7));
+        separador.setBackground(Color.BLACK);
+
+
+
     }
 
     /**
@@ -55,7 +113,32 @@ public class GUI extends JFrame {
     /**
      * inner class that extends an Adapter Class or implements Listeners used by GUI class
      */
-    private class Escucha {
+    private class Escucha implements ActionListener{
 
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            modelCraps.calcularTiro();
+            int[] caras = modelCraps.getCaras();
+            imageDado = new ImageIcon(getClass().getResource("/resources/" + caras[0] + ".png"));
+            dado1.setIcon(imageDado);
+            imageDado = new ImageIcon(getClass().getResource("/resources/" + caras[1] + ".png"));
+            dado2.setIcon(imageDado);
+
+            modelCraps.determinarJuego();
+
+            panelResultados.removeAll();
+            panelResultados.setBorder(BorderFactory.createTitledBorder("Resultados: "));
+            panelResultados.add(resultadosDados);
+            panelResultados.add(separador);
+            panelResultados.add(mensajeSalida);
+            resultadosDados.setText(modelCraps.getEstadoToString()[0]);
+            mensajeSalida.setRows(4);
+            mensajeSalida.setText(modelCraps.getEstadoToString()[1]);
+
+            revalidate();
+            repaint();
+
+
+        }
     }
 }
